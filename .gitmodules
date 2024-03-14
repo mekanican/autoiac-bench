@@ -1,0 +1,12 @@
+[submodule "AutoIaC"]
+	path = AutoIaC
+	url = https://github.com/mekanican/AutoIaC.git
+[submodule "benchmark_tools/inframap"]
+	path = benchmark_tools/inframap
+	url = https://github.com/cycloidio/inframap.git
+[submodule "iac_samples/KaiMonkey"]
+	path = iac_samples/KaiMonkey
+	url = https://github.com/tenable/KaiMonkey.git
+[submodule "iac_samples/cloudgoat"]
+	path = iac_samples/cloudgoat
+	url = https://github.com/RhinoSecurityLabs/cloudgoat.git
