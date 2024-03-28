@@ -10,3 +10,18 @@
 [submodule "iac_samples/cloudgoat"]
 	path = iac_samples/cloudgoat
 	url = https://github.com/RhinoSecurityLabs/cloudgoat.git
+[submodule "iac_samples/aws-health-aware"]
+	path = iac_samples/aws-health-aware
+	url = https://github.com/aws-samples/aws-health-aware
+[submodule "iac_samples/private-s3-vpce"]
+	path = iac_samples/private-s3-vpce
+	url = https://github.com/aws-samples/private-s3-vpce
+[submodule "iac_samples/amazon-ecs-fullstack-app-terraform"]
+	path = iac_samples/amazon-ecs-fullstack-app-terraform
+	url = https://github.com/aws-samples/amazon-ecs-fullstack-app-terraform
+[submodule "iac_samples/serverless-jenkins-on-aws-fargate"]
+	path = iac_samples/serverless-jenkins-on-aws-fargate
+	url = https://github.com/aws-samples/serverless-jenkins-on-aws-fargate
+[submodule "iac_samples/aws-security-services-with-terraform"]
+	path = iac_samples/aws-security-services-with-terraform
+	url = https://github.com/aws-samples/aws-security-services-with-terraform
