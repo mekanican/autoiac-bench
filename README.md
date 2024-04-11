@@ -15,7 +15,7 @@ This is the benchmark repo for [AutoIaC](https://github.com/mekanican/AutoIaC.gi
 | cross_trust_boundary                 | IAC file for testing cross-trust boundary scenarios              | [Cross-Trust Boundary](architecture/cross_trust_boundary.md)                         |
 | isolated_datastore                   | IAC file for testing isolated datastore setup                    | [Isolated Datastore](architecture/isolated_datastore.md)                     |
 | isolated_process                     | IAC file for testing isolated process environments               | [Isolated Process](architecture/isolated_process.md)               |
-| KaiMonkey                            | IAC file for testing KaiMonkey tool                              | [KaiMonkey](architecture/KaiMonkey.md)                              |
+| KaiMonkey                            | IAC file for testing KaiMonkey repo                              | [KaiMonkey](architecture/KaiMonkey.md)                              |
 | nested_subnet                        | IAC file for testing nested subnet configurations               | [Nested Subnet](architecture/nested_subnet.md)                                              |
 | private-s3-vpce                      | IAC file for testing private S3 access through VPC endpoint      | [Private S3 VPCE](architecture/private-s3-vpce.md)                                                     |
 | serverless-jenkins-on-aws-fargate   | IAC file for testing serverless Jenkins setup on AWS Fargate     | [Serverless Jenkins on AWS Fargate](architecture/serverless-jenkins-on-aws-fargate.md) |

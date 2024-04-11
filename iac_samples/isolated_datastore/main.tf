@@ -1,71 +1,41 @@
-resource "aws_apigatewayv2_api" "apigwv2_api" {
-  protocol_type = "HTTP"
-  name          = "restAPI--gw"
-
-  tags = {
-    env      = "development"
-    archUUID = "1d36075c-54dd-4bf7-a797-c19d1ff008a3"
-  }
+resource "aws_db_instance" "datastore1" {
+  allocated_storage    = 20
+  storage_type         = "gp2"
+  engine               = "mysql"
+  instance_class       = "db.t2.micro"
+  name                 = "datastore1"
+  username             = "admin"
+  password             = "Password123"
 }
 
-resource "aws_subnet" "snet" {
-  vpc_id     = aws_vpc.restAPI-vpc.id
-  cidr_block = "10.0.2.0/24"
-
-  tags = {
-    env      = "development"
-    archUUID = "1d36075c-54dd-4bf7-a797-c19d1ff008a3"
+resource "aws_dynamodb_table" "datastore2" {
+  name           = "datastore2"
+  hash_key       = "Id"
+  attribute {
+    name = "Id"
+    type = "S"
   }
+  billing_mode = "PAY_PER_REQUEST"
 }
 
-resource "aws_vpc" "vpc" {
-  enable_dns_support = true
-  enable_classiclink = true
-  cidr_block         = "10.0.0.0/16"
-
-  tags = {
-    env      = "development"
-    archUUID = "1d36075c-54dd-4bf7-a797-c19d1ff008a3"
-  }
+resource "aws_s3_bucket" "datastore3" {
+  bucket = "datastore3-bucket"
+  acl    = "private"
 }
 
-resource "aws_lambda_function" "lambda_function" {
-  runtime       = "nodejs12.x"
-  role          = var.role
-  handler       = var.handler
-  function_name = "restAPI-function"
-
-  tags = {
-    env      = "development"
-    archUUID = "1d36075c-54dd-4bf7-a797-c19d1ff008a3"
-  }
+resource "aws_elasticache_cluster" "datastore4" {
+  cluster_id           = "datastore4"
+  engine               = "redis"
+  node_type            = "cache.t2.micro"
+  num_cache_nodes      = 1
+  parameter_group_name = "default.redis6.x"
 }
 
-resource "aws_docdb_cluster" "docdb_cluster" {
-
-  tags = {
-    env      = "development"
-    archUUID = "1d36075c-54dd-4bf7-a797-c19d1ff008a3"
-  }
+resource "aws_redshift_cluster" "datastore5" {
+  cluster_identifier      = "datastore5"
+  node_type               = "dc2.large"
+  cluster_type            = "single-node"
+  master_username         = "admin"
+  master_password         = "Password123"
+  skip_final_snapshot     = true
 }
-
-resource "aws_secretsmanager_secret" "secretsmanager_secret" {
-
-  tags = {
-    env      = "development"
-    archUUID = "1d36075c-54dd-4bf7-a797-c19d1ff008a3"
-  }
-}
-
-resource "aws_lambda_function" "lambda_function2" {
-  runtime       = "nodejs12.x"
-  role          = var.role-ext
-  handler       = var.handler-ext
-  function_name = "restAPI-function-ext"
-
-  tags = {
-    env      = "development"
-    archUUID = "1d36075c-54dd-4bf7-a797-c19d1ff008a3"
-  }
-}
-

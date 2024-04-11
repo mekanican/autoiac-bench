@@ -1,71 +1,105 @@
-resource "aws_apigatewayv2_api" "apigwv2_api" {
-  protocol_type = "HTTP"
-  name          = "restAPI--gw"
-
-  tags = {
-    env      = "development"
-    archUUID = "1d36075c-54dd-4bf7-a797-c19d1ff008a3"
-  }
+# Create VPC
+resource "aws_vpc" "example_vpc" {
+  cidr_block = "10.0.0.0/16"
 }
 
-resource "aws_subnet" "snet" {
-  vpc_id     = aws_vpc.restAPI-vpc.id
+# Create public subnet for Component A
+resource "aws_subnet" "subnet_a" {
+  vpc_id                  = aws_vpc.example_vpc.id
+  cidr_block              = "10.0.1.0/24"
+  map_public_ip_on_launch = true
+}
+
+# Create private subnet for Component B
+resource "aws_subnet" "subnet_b" {
+  vpc_id     = aws_vpc.example_vpc.id
   cidr_block = "10.0.2.0/24"
+}
 
+# Create private subnet for Component C within subnet B
+resource "aws_subnet" "subnet_c" {
+  vpc_id     = aws_vpc.example_vpc.id
+  cidr_block = "10.0.3.0/24"
+  depends_on = [aws_subnet.subnet_b]
+}
+
+# Component A - EC2 Instance in public subnet
+resource "aws_instance" "component_a" {
+  ami           = "ami-0c55b159cbfafe1f0"
+  instance_type = "t2.micro"
+  subnet_id     = aws_subnet.subnet_a.id
   tags = {
-    env      = "development"
-    archUUID = "1d36075c-54dd-4bf7-a797-c19d1ff008a3"
+    Name = "Component A"
   }
 }
 
-resource "aws_vpc" "vpc" {
-  enable_dns_support = true
-  enable_classiclink = true
-  cidr_block         = "10.0.0.0/16"
-
+# Component B - EC2 Instance in private subnet
+resource "aws_instance" "component_b" {
+  ami           = "ami-0c55b159cbfafe1f0"
+  instance_type = "t2.micro"
+  subnet_id     = aws_subnet.subnet_b.id
   tags = {
-    env      = "development"
-    archUUID = "1d36075c-54dd-4bf7-a797-c19d1ff008a3"
+    Name = "Component B"
   }
 }
 
-resource "aws_lambda_function" "lambda_function" {
-  runtime       = "nodejs12.x"
-  role          = var.role
-  handler       = var.handler
-  function_name = "restAPI-function"
-
+# Component C - EC2 Instance in a different private subnet within subnet B
+resource "aws_instance" "component_c" {
+  ami           = "ami-0c55b159cbfafe1f0"
+  instance_type = "t2.micro"
+  subnet_id     = aws_subnet.subnet_c.id
   tags = {
-    env      = "development"
-    archUUID = "1d36075c-54dd-4bf7-a797-c19d1ff008a3"
+    Name = "Component C"
   }
 }
 
-resource "aws_docdb_cluster" "docdb_cluster" {
-
-  tags = {
-    env      = "development"
-    archUUID = "1d36075c-54dd-4bf7-a797-c19d1ff008a3"
-  }
+# Data flow from A to B
+resource "aws_s3_bucket" "data_flow_A_to_B" {
+  bucket = "data-flow-A-to-B-bucket"
+  acl    = "private"
 }
 
-resource "aws_secretsmanager_secret" "secretsmanager_secret" {
-
-  tags = {
-    env      = "development"
-    archUUID = "1d36075c-54dd-4bf7-a797-c19d1ff008a3"
-  }
+# Data flow from B to C
+resource "aws_s3_bucket" "data_flow_B_to_C" {
+  bucket = "data-flow-B-to-C-bucket"
+  acl    = "private"
 }
 
-resource "aws_lambda_function" "lambda_function2" {
-  runtime       = "nodejs12.x"
-  role          = var.role-ext
-  handler       = var.handler-ext
-  function_name = "restAPI-function-ext"
+# Grant permissions for Component B to access the bucket from Component A
+resource "aws_s3_bucket_policy" "policy_A_to_B" {
+  bucket = aws_s3_bucket.data_flow_A_to_B.bucket
 
-  tags = {
-    env      = "development"
-    archUUID = "1d36075c-54dd-4bf7-a797-c19d1ff008a3"
-  }
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect    = "Allow"
+      Principal = "*"
+      Action    = "s3:GetObject"
+      Resource  = "${aws_s3_bucket.data_flow_A_to_B.arn}/*"
+    }]
+  })
 }
 
+# Grant permissions for Component C to access the bucket from Component B
+resource "aws_s3_bucket_policy" "policy_B_to_C" {
+  bucket = aws_s3_bucket.data_flow_B_to_C.bucket
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect    = "Allow"
+      Principal = "*"
+      Action    = "s3:GetObject"
+      Resource  = "${aws_s3_bucket.data_flow_B_to_C.arn}/*"
+    }]
+  })
+}
+
+resource "external" "third_party_a" {
+  # Configuration for third party resource A
+}
+
+# Third party resources interacting with Component B
+resource "external" "third_party_b" {
+  # Configuration for third party resource B
+}

@@ -1,71 +1,35 @@
-resource "aws_apigatewayv2_api" "apigwv2_api" {
-  protocol_type = "HTTP"
-  name          = "restAPI--gw"
-
+resource "aws_instance" "component1" {
+  ami           = "ami-0c55b159cbfafe1f0"
+  instance_type = "t2.micro"
   tags = {
-    env      = "development"
-    archUUID = "1d36075c-54dd-4bf7-a797-c19d1ff008a3"
+    Name = "Component 1"
   }
 }
 
-resource "aws_subnet" "snet" {
-  vpc_id     = aws_vpc.restAPI-vpc.id
-  cidr_block = "10.0.2.0/24"
-
-  tags = {
-    env      = "development"
-    archUUID = "1d36075c-54dd-4bf7-a797-c19d1ff008a3"
-  }
+resource "aws_s3_bucket" "component2" {
+  bucket = "component2-bucket"
+  acl    = "private"
 }
 
-resource "aws_vpc" "vpc" {
-  enable_dns_support = true
-  enable_classiclink = true
-  cidr_block         = "10.0.0.0/16"
-
-  tags = {
-    env      = "development"
-    archUUID = "1d36075c-54dd-4bf7-a797-c19d1ff008a3"
-  }
+resource "aws_iam_user" "component3" {
+  name = "component3_user"
 }
 
-resource "aws_lambda_function" "lambda_function" {
-  runtime       = "nodejs12.x"
-  role          = var.role
-  handler       = var.handler
-  function_name = "restAPI-function"
-
-  tags = {
-    env      = "development"
-    archUUID = "1d36075c-54dd-4bf7-a797-c19d1ff008a3"
-  }
+resource "aws_db_instance" "component4" {
+  allocated_storage    = 20
+  storage_type         = "gp2"
+  engine               = "mysql"
+  instance_class       = "db.t2.micro"
+  name                 = "component4db"
+  username             = "admin"
+  password             = "Password123"
 }
 
-resource "aws_docdb_cluster" "docdb_cluster" {
-
-  tags = {
-    env      = "development"
-    archUUID = "1d36075c-54dd-4bf7-a797-c19d1ff008a3"
-  }
+resource "aws_lambda_function" "component5" {
+  filename         = "lambda_function_payload.zip"
+  function_name    = "component5_lambda"
+  role             = aws_iam_role.lambda_exec.arn
+  handler          = "exports.handler"
+  source_code_hash = filebase64sha256("lambda_function_payload.zip")
+  runtime          = "nodejs12.x"
 }
-
-resource "aws_secretsmanager_secret" "secretsmanager_secret" {
-
-  tags = {
-    env      = "development"
-    archUUID = "1d36075c-54dd-4bf7-a797-c19d1ff008a3"
-  }
-}
-
-resource "aws_lambda_function" "lambda_function2" {
-  runtime       = "nodejs12.x"
-  role          = var.role-ext
-  handler       = var.handler-ext
-  function_name = "restAPI-function-ext"
-
-  tags = {
-    env      = "development"
-    archUUID = "1d36075c-54dd-4bf7-a797-c19d1ff008a3"
-  }
-}
-
