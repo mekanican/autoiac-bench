@@ -25,3 +25,12 @@
 [submodule "iac_samples/aws-security-services-with-terraform"]
 	path = iac_samples/aws-security-services-with-terraform
 	url = https://github.com/aws-samples/aws-security-services-with-terraform
+[submodule "iac_samples/stack-magento"]
+	path = iac_samples/stack-magento
+	url = https://github.com/cycloid-community-catalog/stack-magento
+[submodule "iac_samples/terragoat"]
+	path = iac_samples/terragoat
+	url = https://github.com/bridgecrewio/terragoat
+[submodule "iac_samples/startleft"]
+	path = iac_samples/startleft
+	url = https://github.com/iriusrisk/startleft.git
