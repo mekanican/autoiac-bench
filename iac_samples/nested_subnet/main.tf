@@ -1,132 +1,215 @@
-# Define provider
 provider "aws" {
-  region = "us-east-1" # Specify your desired AWS region
+  region = "us-west-2"
 }
 
-# Create VPCs
-resource "aws_vpc" "ec2_vpc" {
+# VPC, Subnet, and Security Groups
+resource "aws_vpc" "main" {
   cidr_block = "10.0.0.0/16"
 }
 
-resource "aws_vpc" "dynamodb_elasticcache_vpc" {
-  cidr_block = "10.1.0.0/16"
+resource "aws_subnet" "subnet" {
+  vpc_id            = aws_vpc.main.id
+  cidr_block        = "10.0.1.0/24"
+  availability_zone = data.aws_availability_zones.available.names[0]
 }
 
-# Create security groups
-resource "aws_security_group" "elb_sg" {
-  name        = "elb_sg"
-  description = "Security group for ELB"
-  vpc_id      = aws_vpc.ec2_vpc.id
+resource "aws_security_group" "lb_sg" {
+  vpc_id = aws_vpc.main.id
 
-  // Define your ELB specific ingress rules here
+  ingress {
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
 }
 
 resource "aws_security_group" "ec2_sg" {
-  name        = "ec2_sg"
-  description = "Security group for EC2 instances"
-  vpc_id      = aws_vpc.ec2_vpc.id
+  vpc_id = aws_vpc.main.id
 
-  // Define your EC2 specific ingress rules here
-}
-
-# Create ELB
-resource "aws_elb" "example" {
-  name               = "example-elb"
-  availability_zones = ["us-east-1a", "us-east-1b"] # Specify desired AZs
-  security_groups    = [aws_security_group.elb_sg.id]
-
-  listener {
-    instance_port     = 80
-    instance_protocol = "HTTP"
-    lb_port           = 80
-    lb_protocol       = "HTTP"
+  ingress {
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["10.0.0.0/16"]
   }
 
-  // Add other ELB configurations as needed
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
 }
 
-# Create EC2 instances
-resource "aws_instance" "ec2_instances" {
-  count         = 2
-  ami           = "ami-12345678" # Specify your desired AMI
-  instance_type = "t2.micro" # Specify your desired instance type
-  subnet_id     = aws_subnet.ec2_subnet.id
-  security_groups = [aws_security_group.ec2_sg.id]
-
-  // Add other EC2 configurations as needed
-}
-
-# Create DynamoDB table
+# DynamoDB Table
 resource "aws_dynamodb_table" "example" {
   name           = "example-table"
   billing_mode   = "PAY_PER_REQUEST"
   hash_key       = "id"
+
   attribute {
     name = "id"
     type = "S"
   }
 
-  // Add other DynamoDB configurations as needed
+  tags = {
+    Name = "example-table"
+  }
 }
 
-# Create ElasticCache cluster
+# ElastiCache Cluster
+resource "aws_elasticache_subnet_group" "example" {
+  name       = "example"
+  subnet_ids = [aws_subnet.subnet.id]
+}
+
 resource "aws_elasticache_cluster" "example" {
-  cluster_id           = "example-cluster"
+  cluster_id           = "example"
   engine               = "redis"
   node_type            = "cache.t2.micro"
   num_cache_nodes      = 1
-  parameter_group_name = "default.redis6.x"
-
-  // Add other ElasticCache configurations as needed
+  parameter_group_name = "default.redis3.2"
+  subnet_group_name    = aws_elasticache_subnet_group.example.name
+  security_group_ids   = [aws_security_group.ec2_sg.id]
 }
 
-# Create connections
-# Connection from ELB to EC2
-resource "aws_instance_elb_attachment" "elb_attachment" {
-  instances  = aws_instance.ec2_instances[*].id
-  elb        = aws_elb.example.name
+# EC2 Instances
+resource "aws_instance" "ec2_instance1" {
+  ami           = "ami-0c55b159cbfafe1f0"  # Update with the latest Amazon Linux AMI
+  instance_type = "t2.micro"
+  subnet_id     = aws_subnet.subnet.id
+  security_groups = [aws_security_group.ec2_sg.name]
+
+  iam_instance_profile = aws_iam_instance_profile.ec2_instance_profile.name
+
+  tags = {
+    Name = "EC2Instance1"
+  }
 }
 
-# Connection from EC2 to DynamoDB
-# Assume you have IAM role allowing EC2 instances to access DynamoDB
-# You should define the IAM role separately and reference it here
-resource "aws_iam_instance_profile" "example" {
-  name = "example-profile"
-  role = aws_iam_role.example.name
+resource "aws_instance" "ec2_instance2" {
+  ami           = "ami-0c55b159cbfafe1f0"  # Update with the latest Amazon Linux AMI
+  instance_type = "t2.micro"
+  subnet_id     = aws_subnet.subnet.id
+  security_groups = [aws_security_group.ec2_sg.name]
+
+  iam_instance_profile = aws_iam_instance_profile.ec2_instance_profile.name
+
+  tags = {
+    Name = "EC2Instance2"
+  }
 }
 
-resource "aws_iam_role" "example" {
-  name = "example-role"
-  assume_role_policy = jsonencode({
-    "Version" : "2012-10-17",
-    "Statement": [{
-      "Effect": "Allow",
-      "Principal": {
-        "Service": "ec2.amazonaws.com"
+# Load Balancer
+resource "aws_lb" "main" {
+  name               = "main-lb"
+  internal           = false
+  load_balancer_type = "application"
+  security_groups    = [aws_security_group.lb_sg.id]
+  subnets            = [aws_subnet.subnet.id]
+
+  enable_deletion_protection = false
+
+  tags = {
+    Name = "main-lb"
+  }
+}
+
+# Load Balancer Target Group
+resource "aws_lb_target_group" "main" {
+  name     = "main-tg"
+  port     = 80
+  protocol = "HTTP"
+  vpc_id   = aws_vpc.main.id
+
+  health_check {
+    path                = "/"
+    interval            = 30
+    timeout             = 5
+    healthy_threshold   = 2
+    unhealthy_threshold = 2
+    matcher             = "200"
+  }
+}
+
+# Load Balancer Listener
+resource "aws_lb_listener" "main" {
+  load_balancer_arn = aws_lb.main.arn
+  port              = "80"
+  protocol          = "HTTP"
+
+  default_action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.main.arn
+  }
+}
+
+# Register EC2 Instances with Target Group
+resource "aws_lb_target_group_attachment" "ec2_instance1" {
+  target_group_arn = aws_lb_target_group.main.arn
+  target_id        = aws_instance.ec2_instance1.id
+  port             = 80
+}
+
+resource "aws_lb_target_group_attachment" "ec2_instance2" {
+  target_group_arn = aws_lb_target_group.main.arn
+  target_id        = aws_instance.ec2_instance2.id
+  port             = 80
+}
+
+# IAM Role and Policies for EC2
+data "aws_iam_policy_document" "ec2_assume_role" {
+  statement {
+    actions = ["sts:AssumeRole"]
+
+    principals {
+      type        = "Service"
+      identifiers = ["ec2.amazonaws.com"]
+    }
+  }
+}
+
+resource "aws_iam_role" "ec2_role" {
+  name               = "ec2_role"
+  assume_role_policy = data.aws_iam_policy_document.ec2_assume_role.json
+}
+
+resource "aws_iam_policy" "ec2_policy" {
+  name        = "ec2_policy"
+  description = "IAM policy for EC2 to access DynamoDB and ElastiCache"
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = [
+          "dynamodb:*",
+          "elasticache:*",
+          "logs:*",
+          "cloudwatch:*",
+        ]
+        Effect   = "Allow"
+        Resource = "*"
       },
-      "Action": "sts:AssumeRole"
-    }]
+    ]
   })
 }
 
-resource "aws_iam_role_policy_attachment" "example" {
-  role       = aws_iam_role.example.name
-  policy_arn = "arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess" # Adjust with your desired policy
+resource "aws_iam_role_policy_attachment" "ec2_policy_attach" {
+  role       = aws_iam_role.ec2_role.name
+  policy_arn = aws_iam_policy.ec2_policy.arn
 }
 
-# Connection from EC2 to ElasticCache
-# You need to configure access to ElasticCache in the EC2 security group
-# Ensure necessary ports and permissions are allowed
-
-# Create Subnets
-resource "aws_subnet" "ec2_subnet" {
-  vpc_id            = aws_vpc.ec2_vpc.id
-  cidr_block        = "10.0.1.0/24"
-  availability_zone = "us-east-1a" # Specify your desired AZ
+resource "aws_iam_instance_profile" "ec2_instance_profile" {
+  name = "ec2_instance_profile"
+  role = aws_iam_role.ec2_role.name
 }
 
-resource "aws_subnet" "dynamodb_elasticcache_subnet" {
-  vpc_id            = aws_vpc.dynamodb_elasticcache_vpc.id
-  cidr_block        = "10.1.1.0/24"
-  availability_zone = "us-east-1b" # Specify your desired AZ
-}
+data "aws_availability_zones" "available" {}
