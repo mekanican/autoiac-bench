@@ -20,7 +20,7 @@ resource "aws_subnet" "subnet_b" {
 resource "aws_subnet" "subnet_c" {
   vpc_id     = aws_vpc.example_vpc.id
   cidr_block = "10.0.3.0/24"
-  depends_on = [aws_subnet.subnet_b]
+  
 }
 
 # Component A - EC2 Instance in public subnet

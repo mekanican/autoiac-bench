@@ -1,62 +1,106 @@
-resource "aws_instance" "component_a" {
-  ami           = "ami-0c55b159cbfafe1f0"
-  instance_type = "t2.micro"
-  tags = {
-    Name = "Component A"
-  }
+provider "aws" {
+  region = "your_aws_region"
 }
 
-resource "aws_instance" "component_b" {
-  ami           = "ami-0c55b159cbfafe1f0"
-  instance_type = "t2.micro"
-  tags = {
-    Name = "Component B"
-  }
-}
+# IAM Role for EC2 Instance
+resource "aws_iam_role" "ec2_role" {
+  name = "ec2_role"
 
-# Component C - AWS EC2 Instance
-resource "aws_instance" "component_c" {
-  ami           = "ami-0c55b159cbfafe1f0"
-  instance_type = "t2.micro"
-  tags = {
-    Name = "Component C"
-  }
-}
-
-resource "aws_s3_bucket" "data_flow_A_to_B" {
-  bucket = "data-flow-A-to-B-bucket"
-  acl    = "private"
-}
-
-resource "aws_s3_bucket" "data_flow_B_to_C" {
-  bucket = "data-flow-B-to-C-bucket"
-  acl    = "private"
-}
-
-resource "aws_s3_bucket_policy" "policy_A_to_B" {
-  bucket = aws_s3_bucket.data_flow_A_to_B.bucket
-
-  policy = jsonencode({
-    Version = "2012-10-17"
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17",
     Statement = [{
-      Effect    = "Allow"
-      Principal = "*"
-      Action    = "s3:GetObject"
-      Resource  = "${aws_s3_bucket.data_flow_A_to_B.arn}/*"
+      Effect    = "Allow",
+      Principal = {
+        Service = "ec2.amazonaws.com"
+      },
+      Action    = "sts:AssumeRole"
     }]
   })
 }
 
-resource "aws_s3_bucket_policy" "policy_B_to_C" {
-  bucket = aws_s3_bucket.data_flow_B_to_C.bucket
+# IAM Policy for EC2 Instance to Access S3 Bucket
+resource "aws_iam_policy" "s3_access_policy" {
+  name        = "s3_access_policy"
+  description = "Allows EC2 instance to access S3 bucket"
 
   policy = jsonencode({
-    Version = "2012-10-17"
+    Version = "2012-10-17",
     Statement = [{
-      Effect    = "Allow"
-      Principal = "*"
-      Action    = "s3:GetObject"
-      Resource  = "${aws_s3_bucket.data_flow_B_to_C.arn}/*"
+      Effect   = "Allow",
+      Action   = [
+        "s3:GetObject",
+        "s3:PutObject",
+        "s3:ListBucket"
+      ],
+      Resource = [
+        aws_s3_bucket.example.arn,
+        "${aws_s3_bucket.example.arn}/*"
+      ]
     }]
   })
+}
+
+# Attach IAM Policy to IAM Role
+resource "aws_iam_role_policy_attachment" "s3_access_attachment" {
+  policy_arn = aws_iam_policy.s3_access_policy.arn
+  role       = aws_iam_role.ec2_role.name
+}
+
+# AWS EC2 Instance
+resource "aws_instance" "example" {
+  ami                    = "ami-12345678" # Your desired AMI ID
+  instance_type          = "t2.micro"
+  iam_instance_profile   = aws_iam_role.ec2_role.name
+  tags = {
+    Name = "example-instance"
+  }
+}
+
+# API Gateway
+resource "aws_api_gateway_rest_api" "example" {
+  name        = "example-api"
+  description = "Example API Gateway"
+}
+
+resource "aws_api_gateway_resource" "example" {
+  rest_api_id = aws_api_gateway_rest_api.example.id
+  parent_id   = aws_api_gateway_rest_api.example.root_resource_id
+  path_part   = "example"
+}
+
+resource "aws_api_gateway_method" "example" {
+  rest_api_id   = aws_api_gateway_rest_api.example.id
+  resource_id   = aws_api_gateway_resource.example.id
+  http_method   = "GET"
+  authorization = "NONE"
+}
+
+resource "aws_api_gateway_integration" "example" {
+  rest_api_id             = aws_api_gateway_rest_api.example.id
+  resource_id             = aws_api_gateway_resource.example.id
+  http_method             = aws_api_gateway_method.example.http_method
+  integration_http_method = "GET"
+  type                    = "AWS_PROXY"
+  uri                     = aws_instance.example.public_ip # Endpoint of EC2 instance
+}
+
+# Amazon S3
+resource "aws_s3_bucket" "example" {
+  bucket = "example-bucket"
+  acl    = "private"
+}
+
+# Connection from API Gateway to AWS EC2 Instance
+resource "aws_api_gateway_integration_response" "example" {
+  rest_api_id = aws_api_gateway_rest_api.example.id
+  resource_id = aws_api_gateway_resource.example.id
+  http_method = aws_api_gateway_method.example.http_method
+  status_code = aws_api_gateway_method.example.status_code
+}
+
+resource "aws_api_gateway_method_response" "example" {
+  rest_api_id = aws_api_gateway_rest_api.example.id
+  resource_id = aws_api_gateway_resource.example.id
+  http_method = aws_api_gateway_method.example.http_method
+  status_code = aws_api_gateway_method.example.status_code
 }
