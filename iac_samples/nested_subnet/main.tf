@@ -51,9 +51,9 @@ resource "aws_security_group" "ec2_sg" {
 
 # DynamoDB Table
 resource "aws_dynamodb_table" "example" {
-  name           = "example-table"
-  billing_mode   = "PAY_PER_REQUEST"
-  hash_key       = "id"
+  name         = "example-table"
+  billing_mode = "PAY_PER_REQUEST"
+  hash_key     = "id"
 
   attribute {
     name = "id"
@@ -83,9 +83,9 @@ resource "aws_elasticache_cluster" "example" {
 
 # EC2 Instances
 resource "aws_instance" "ec2_instance1" {
-  ami           = "ami-0c55b159cbfafe1f0"  # Update with the latest Amazon Linux AMI
-  instance_type = "t2.micro"
-  subnet_id     = aws_subnet.subnet.id
+  ami             = "ami-0c55b159cbfafe1f0" # Update with the latest Amazon Linux AMI
+  instance_type   = "t2.micro"
+  subnet_id       = aws_subnet.subnet.id
   security_groups = [aws_security_group.ec2_sg.name]
 
   iam_instance_profile = aws_iam_instance_profile.ec2_instance_profile.name
@@ -96,9 +96,9 @@ resource "aws_instance" "ec2_instance1" {
 }
 
 resource "aws_instance" "ec2_instance2" {
-  ami           = "ami-0c55b159cbfafe1f0"  # Update with the latest Amazon Linux AMI
-  instance_type = "t2.micro"
-  subnet_id     = aws_subnet.subnet.id
+  ami             = "ami-0c55b159cbfafe1f0" # Update with the latest Amazon Linux AMI
+  instance_type   = "t2.micro"
+  subnet_id       = aws_subnet.subnet.id
   security_groups = [aws_security_group.ec2_sg.name]
 
   iam_instance_profile = aws_iam_instance_profile.ec2_instance_profile.name

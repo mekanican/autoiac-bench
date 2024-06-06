@@ -1,5 +1,5 @@
 provider "aws" {
-  region = "your_aws_region"
+  region = "us-west-2"
 }
 
 # IAM Role for EC2 Instance
@@ -9,11 +9,11 @@ resource "aws_iam_role" "ec2_role" {
   assume_role_policy = jsonencode({
     Version = "2012-10-17",
     Statement = [{
-      Effect    = "Allow",
+      Effect = "Allow",
       Principal = {
         Service = "ec2.amazonaws.com"
       },
-      Action    = "sts:AssumeRole"
+      Action = "sts:AssumeRole"
     }]
   })
 }
@@ -26,8 +26,8 @@ resource "aws_iam_policy" "s3_access_policy" {
   policy = jsonencode({
     Version = "2012-10-17",
     Statement = [{
-      Effect   = "Allow",
-      Action   = [
+      Effect = "Allow",
+      Action = [
         "s3:GetObject",
         "s3:PutObject",
         "s3:ListBucket"
@@ -48,9 +48,9 @@ resource "aws_iam_role_policy_attachment" "s3_access_attachment" {
 
 # AWS EC2 Instance
 resource "aws_instance" "example" {
-  ami                    = "ami-12345678" # Your desired AMI ID
-  instance_type          = "t2.micro"
-  iam_instance_profile   = aws_iam_role.ec2_role.name
+  ami                  = "ami-083abdc7ac7d736dd"
+  instance_type        = "t2.micro"
+  iam_instance_profile = aws_iam_role.ec2_role.name
   tags = {
     Name = "example-instance"
   }
@@ -86,8 +86,7 @@ resource "aws_api_gateway_integration" "example" {
 
 # Amazon S3
 resource "aws_s3_bucket" "example" {
-  bucket = "example-bucket"
-  acl    = "private"
+  bucket = "example-bucket-v2a13a"
 }
 
 # Connection from API Gateway to AWS EC2 Instance
@@ -95,12 +94,12 @@ resource "aws_api_gateway_integration_response" "example" {
   rest_api_id = aws_api_gateway_rest_api.example.id
   resource_id = aws_api_gateway_resource.example.id
   http_method = aws_api_gateway_method.example.http_method
-  status_code = aws_api_gateway_method.example.status_code
+  status_code = "200"
 }
 
 resource "aws_api_gateway_method_response" "example" {
   rest_api_id = aws_api_gateway_rest_api.example.id
   resource_id = aws_api_gateway_resource.example.id
   http_method = aws_api_gateway_method.example.http_method
-  status_code = aws_api_gateway_method.example.status_code
+  status_code = "200"
 }

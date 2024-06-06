@@ -54,16 +54,15 @@ resource "aws_db_subnet_group" "main" {
 }
 
 resource "aws_db_instance" "main" {
-  identifier              = "main-rds-instance"
-  allocated_storage       = 20
-  engine                  = "mysql"
-  instance_class          = "db.t3.micro"
-  name                    = "mydb"
-  username                = "foo"
-  password                = "bar"
-  db_subnet_group_name    = aws_db_subnet_group.main.name
-  vpc_security_group_ids  = [aws_security_group.rds_sg.id]
-  skip_final_snapshot     = true
+  identifier             = "main-rds-instance"
+  allocated_storage      = 20
+  engine                 = "mysql"
+  instance_class         = "db.t3.micro"
+  username               = "foo"
+  password               = "bar"
+  db_subnet_group_name   = aws_db_subnet_group.main.name
+  vpc_security_group_ids = [aws_security_group.rds_sg.id]
+  skip_final_snapshot    = true
 }
 
 data "aws_iam_policy_document" "lambda_assume_role" {
@@ -112,8 +111,8 @@ resource "aws_lambda_function" "lambda_function" {
   runtime          = "python3.9"
   role             = aws_iam_role.lambda_role.arn
   handler          = "lambda_function.lambda_handler"
-  filename         = "lambda_function_payload.zip"
-  source_code_hash = filebase64sha256("lambda_function_payload.zip")
+  filename         = "lambda_function_src.zip"
+  source_code_hash = filebase64sha256("lambda_function_src.zip")
 
   environment {
     variables = {
@@ -166,7 +165,7 @@ resource "aws_api_gateway_integration" "lambda" {
 }
 
 resource "aws_api_gateway_deployment" "deployment" {
-  
+
   rest_api_id = aws_api_gateway_rest_api.api.id
   stage_name  = "prod"
 }
