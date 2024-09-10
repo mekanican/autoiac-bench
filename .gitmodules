@@ -1,36 +1,9 @@
-[submodule "AutoIaC"]
-	path = AutoIaC
-	url = https://github.com/mekanican/AutoIaC.git
-[submodule "benchmark_tools/inframap"]
-	path = benchmark_tools/inframap
-	url = https://github.com/cycloidio/inframap.git
-[submodule "iac_samples/KaiMonkey"]
-	path = iac_samples/KaiMonkey
-	url = https://github.com/tenable/KaiMonkey.git
-[submodule "iac_samples/cloudgoat"]
-	path = iac_samples/cloudgoat
-	url = https://github.com/RhinoSecurityLabs/cloudgoat.git
-[submodule "iac_samples/aws-health-aware"]
-	path = iac_samples/aws-health-aware
-	url = https://github.com/aws-samples/aws-health-aware
-[submodule "iac_samples/private-s3-vpce"]
-	path = iac_samples/private-s3-vpce
-	url = https://github.com/aws-samples/private-s3-vpce
-[submodule "iac_samples/amazon-ecs-fullstack-app-terraform"]
-	path = iac_samples/amazon-ecs-fullstack-app-terraform
-	url = https://github.com/aws-samples/amazon-ecs-fullstack-app-terraform
-[submodule "iac_samples/serverless-jenkins-on-aws-fargate"]
-	path = iac_samples/serverless-jenkins-on-aws-fargate
-	url = https://github.com/aws-samples/serverless-jenkins-on-aws-fargate
-[submodule "iac_samples/aws-security-services-with-terraform"]
-	path = iac_samples/aws-security-services-with-terraform
-	url = https://github.com/aws-samples/aws-security-services-with-terraform
-[submodule "iac_samples/stack-magento"]
-	path = iac_samples/stack-magento
-	url = https://github.com/cycloid-community-catalog/stack-magento
-[submodule "iac_samples/terragoat"]
-	path = iac_samples/terragoat
-	url = https://github.com/bridgecrewio/terragoat
-[submodule "iac_samples/startleft"]
-	path = iac_samples/startleft
-	url = https://github.com/iriusrisk/startleft.git
+[submodule "Scripts/benchmark_tools/AutoIAC"]
+	path = Scripts/benchmark_tools/AutoIAC
+	url = https://github.com/mekanican/AutoIaC
+[submodule "Scripts/benchmark_tools/inframap"]
+	path = Scripts/benchmark_tools/inframap
+	url = https://github.com/cycloidio/inframap
+[submodule "Scripts/benchmark_tools/startleft"]
+	path = Scripts/benchmark_tools/startleft
+	url = https://github.com/iriusrisk/startleft
